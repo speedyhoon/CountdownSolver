@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	MUL = iota
-	ADD
-	SUB
-	DIV
+	MUL = iota //MUL represents multiplication
+	ADD        //ADD represents addition
+	SUB        //SUB represents subtraction
+	DIV        //DIV represents division
 )
 
 var (
 	signs   = []int{MUL, ADD, SUB, DIV}
-	display = []string{"×", "+", "-", "÷"}
+	display = []rune{'×', '+', '-', '÷'}
 )
 
 func rec(numbers, list, indexes []int, aim, off, used *int) {
@@ -33,14 +33,14 @@ func rec(numbers, list, indexes []int, aim, off, used *int) {
 			if total == *aim && qty < *used {
 				*used = qty
 				*off = 0
-				printa(list, s1, n2, total)
+				printA(list, s1, n2, total)
 				continue
 			}
 
 			if v := int(math.Abs(float64(*aim - total))); v < *off {
 				*off = v
 				if *off <= 15 {
-					printa(list, s1, n2, total)
+					printA(list, s1, n2, total)
 				}
 			}
 
@@ -60,7 +60,7 @@ func has(indexes []int, newest int) bool {
 	return false
 }
 
-func printa(numbers []int, n ...int) {
+func printA(numbers []int, n ...int) {
 	numbers = append(numbers, n...)
 	for i, n := range numbers {
 		if i >= len(numbers)-1 {
@@ -68,7 +68,7 @@ func printa(numbers []int, n ...int) {
 		} else if i%2 == 0 {
 			print(n)
 		} else {
-			print(" ", display[n], " ")
+			fmt.Printf(" %c ", display[n])
 		}
 	}
 }
@@ -89,7 +89,6 @@ func input() (input string, err error) {
 }
 
 func main() {
-	const line = "----------------"
 	var numbers []int
 	var aim int
 
@@ -123,7 +122,9 @@ func main() {
 	}
 	aim = int(a)
 
-	fmt.Println("\n", line, "\n     ", aim, "\n", numbers, "\n", line)
+	borderLen := len(fmt.Sprintf("%d", numbers)) + 4
+	border := strings.Repeat("-", borderLen)
+	fmt.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, aim, numbers)
 
 	for _, n1 := range numbers {
 		if n1 == aim {
@@ -140,7 +141,7 @@ func main() {
 	}
 
 	if off != 0 {
-		fmt.Println(line, "\n   IMPOSSIBLE   \n", line)
+		fmt.Printf("%s\n   IMPOSSIBLE   \n%[1]s", border)
 	}
 }
 
