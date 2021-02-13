@@ -9,14 +9,17 @@ import (
 	"strings"
 )
 
-const MUL = 0
-const ADD = 1
-const SUB = 2
-const DIV = 3
-const line = "----------------"
+const (
+	MUL = iota
+	ADD
+	SUB
+	DIV
+)
 
-var signs = []int{MUL, ADD, SUB, DIV}
-var display = []string{"×", "+", "-", "÷"}
+var (
+	signs   = []int{MUL, ADD, SUB, DIV}
+	display = []string{"×", "+", "-", "÷"}
+)
 
 func rec(numbers, list, indexes []int, aim, off, used *int) {
 	for _, s1 := range signs {
@@ -76,7 +79,7 @@ func input() (input string, err error) {
 	// ReadString will block until the delimiter is entered
 	input, err = reader.ReadString(readString)
 	if err != nil {
-		fmt.Println("An error occured while reading input. Please try again", err)
+		fmt.Println("An error occurred while reading input. Please try again", err)
 		return
 	}
 
@@ -86,6 +89,7 @@ func input() (input string, err error) {
 }
 
 func main() {
+	const line = "----------------"
 	var numbers []int
 	var aim int
 
@@ -152,13 +156,10 @@ func sum(inputs []int, k ...int) (total, qty int) {
 		switch inputs[n-1] {
 		case MUL:
 			total *= inputs[n]
-			break
 		case ADD:
 			total += inputs[n]
-			break
 		case SUB:
 			total -= inputs[n]
-			break
 		case DIV:
 			if total != 0 && inputs[n] != 0 && total%inputs[n] == 0 {
 				total /= inputs[n]
