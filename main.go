@@ -109,7 +109,7 @@ func parse(minQtyRequired int, message string) (numbers []int) {
 			var x int64
 			x, err = strconv.ParseInt(strs[i], 10, 64)
 			if err != nil || x == 0 {
-				//zeros & errors are ignored.
+				//Zeros & errors are ignored.
 				continue
 			}
 			numbers = append(numbers, int(x))
@@ -132,7 +132,7 @@ func main() {
 	log.Println("\nThe total to aim for is:")
 	aim := parse(1, "At least one number is required.")[0]
 
-	threshold = calcThreshold(append(numbers, aim/aimPercentage, threshold))
+	threshold = calcThreshold(aim/aimPercentage, threshold)
 
 	borderLen := len(fmt.Sprintf("%v", numbers)) + 4
 	border := strings.Repeat("-", borderLen)
@@ -156,7 +156,7 @@ func main() {
 	}
 }
 
-func calcThreshold(n []int) (max int) {
+func calcThreshold(n ...int) (max int) {
 	for i := range n {
 		if n[i] > max {
 			max = n[i]
