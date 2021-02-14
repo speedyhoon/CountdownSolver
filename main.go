@@ -11,50 +11,52 @@ import (
 )
 
 const (
-	MUL = iota //MUL represents multiplication
-	ADD        //ADD represents addition
-	SUB        //SUB represents subtraction
-	DIV        //DIV represents division
+	MUL           = iota //MUL represents multiplication
+	ADD                  //ADD represents addition
+	SUB                  //SUB represents subtraction
+	DIV                  //DIV represents division
+	aimPercentage = 10
 )
 
 var (
-	signs   = []int{MUL, ADD, SUB, DIV}
-	display = []rune{'×', '+', '-', '÷'}
+	signs     = []int{MUL, ADD, SUB, DIV}
+	display   = []rune{'×', '+', '-', '÷'}
+	threshold = 15 // Answers won't be printed unless they are within this threshold.
 )
 
 func rec(numbers, list, indexes []int, aim, off, used *int) {
-	for _, s1 := range signs {
-		for b, n2 := range numbers {
-			if has(indexes, b) {
-				//Each number can only be used once
+	for s1 := range signs {
+		for n2 := range numbers {
+			if has(indexes, n2) {
+				//Each number can only be used once.
 				continue
 			}
 
-			total, qty := sum(list, s1, n2)
+			total, qty := sum(list, signs[s1], numbers[n2])
 			if total == *aim && qty < *used {
 				*used = qty
 				*off = 0
-				printA(list, s1, n2, total)
+				printA(list, signs[s1], numbers[n2], total)
 				continue
 			}
 
 			if v := int(math.Abs(float64(*aim - total))); v < *off {
 				*off = v
-				if *off <= 15 {
-					printA(list, s1, n2, total)
+				if *off <= threshold {
+					printA(list, signs[s1], numbers[n2], total)
 				}
 			}
 
 			if qty < *used {
-				rec(numbers, append(list, s1, n2), append(indexes, b), aim, off, used)
+				rec(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), aim, off, used)
 			}
 		}
 	}
 }
 
 func has(indexes []int, newest int) bool {
-	for _, i := range indexes {
-		if i == newest {
+	for i := range indexes {
+		if indexes[i] == newest {
 			return true
 		}
 	}
@@ -63,13 +65,14 @@ func has(indexes []int, newest int) bool {
 
 func printA(numbers []int, n ...int) {
 	numbers = append(numbers, n...)
-	for i, n := range numbers {
-		if i >= len(numbers)-1 {
-			print(" = ", n, "\n")
-		} else if i%2 == 0 {
-			print(n)
-		} else {
-			fmt.Printf(" %c ", display[n])
+	for i := range numbers {
+		switch {
+		case i >= len(numbers)-1:
+			println(" = ", numbers[i])
+		case i%2 == 0:
+			print(numbers[i])
+		default:
+			fmt.Printf(" %c ", display[numbers[i]])
 		}
 	}
 }
@@ -80,7 +83,7 @@ func input() (input string, err error) {
 	//ReadString will block until the delimiter is entered.
 	input, err = reader.ReadString(readString)
 	if err != nil {
-		log.Fatalln("An error occurred while reading input. Please try again", err)
+		return
 	}
 
 	//Remove the delimiter from the string.
@@ -101,9 +104,14 @@ func main() {
 	}
 	for _, i := range strings.Split(s, " ") {
 		i = strings.TrimSpace(i)
-		x, err := strconv.ParseInt(i, 10, 64)
+		var x int64
+		x, err = strconv.ParseInt(i, 10, 64)
 		if err != nil {
 			log.Fatalln(err)
+		}
+		if x == 0 {
+			//zeros are ignored
+			continue
 		}
 		numbers = append(numbers, int(x))
 	}
@@ -124,28 +132,37 @@ func main() {
 		log.Fatalln(err)
 	}
 	aim = int(a)
+	threshold = calcThreshold(append(numbers, aim/aimPercentage, threshold))
 
-	borderLen := len(fmt.Sprintf("%d", numbers)) + 4
+	borderLen := len(fmt.Sprintf("%v", numbers)) + 4
 	border := strings.Repeat("-", borderLen)
 	log.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, aim, numbers)
 
-	for _, n1 := range numbers {
-		if n1 == aim {
-			log.Println(n1, "=", aim)
+	for i := range numbers {
+		if numbers[i] == aim {
+			log.Println(numbers[i], "=", aim)
 			return
 		}
 	}
 
-	off := aim
-
+	offBy := aim
 	used := len(numbers)
-	for a, n1 := range numbers {
-		rec(numbers, []int{n1}, []int{a}, &aim, &off, &used)
+	for i := range numbers {
+		rec(numbers, []int{numbers[i]}, []int{i}, &aim, &offBy, &used)
 	}
 
-	if off != 0 {
+	if offBy != 0 {
 		log.Printf("%s\n   IMPOSSIBLE   \n%[1]s", border)
 	}
+}
+
+func calcThreshold(n []int) (max int) {
+	for i := range n {
+		if n[i] > max {
+			max = n[i]
+		}
+	}
+	return
 }
 
 func sum(inputs []int, k ...int) (total, qty int) {
