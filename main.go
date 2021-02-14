@@ -34,7 +34,7 @@ func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 			}
 
 			total, qty := sum(list, signs[s1], numbers[n2])
-			if total == *aim && qty <= *used {
+			if total == *aim {
 				switch {
 				case *off != 0:
 					log.Println("Solved answer. Attempting to simplify further...")
