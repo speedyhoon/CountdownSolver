@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	MUL           = iota //MUL represents multiplication
-	ADD                  //ADD represents addition
-	SUB                  //SUB represents subtraction
-	DIV                  //DIV represents division
+	MUL           = iota //MUL represents multiplication.
+	ADD                  //ADD represents addition.
+	SUB                  //SUB represents subtraction.
+	DIV                  //DIV represents division.
 	aimPercentage = 10
 )
 
@@ -97,27 +97,37 @@ func main() {
 
 	var numbers []int
 	var aim int
+	var s string
+	var err error
 
-	s, err := input()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for _, i := range strings.Split(s, " ") {
-		i = strings.TrimSpace(i)
-		var x int64
-		x, err = strconv.ParseInt(i, 10, 64)
+	const minQtyRequired = 3
+	for len(numbers) < minQtyRequired {
+		s, err = input()
 		if err != nil {
-			log.Fatalln(err)
-		}
-		if x == 0 {
-			//zeros are ignored
+			log.Println(err)
 			continue
 		}
-		numbers = append(numbers, int(x))
-	}
 
-	if len(numbers) < 3 {
-		log.Fatalln("At least three numbers are required")
+		strs := strings.Split(s, " ")
+		for i := range strs {
+			strs[i] = strings.TrimSpace(strs[i])
+			if strs[i] == "" {
+				continue
+			}
+
+			var x int64
+			x, err = strconv.ParseInt(strs[i], 10, 64)
+			if err != nil || x == 0 {
+				//zeros & errors are ignored.
+				continue
+			}
+			numbers = append(numbers, int(x))
+		}
+
+		if len(numbers) < minQtyRequired {
+			log.Print("At least three numbers are required.\n\n")
+			numbers = nil //Clear any previous failed inputs.
+		}
 	}
 
 	log.Println("\nThe total to aim for is:")
