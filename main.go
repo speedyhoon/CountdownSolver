@@ -34,11 +34,19 @@ func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 			}
 
 			total, qty := sum(list, signs[s1], numbers[n2])
-			if total == *aim && qty < *used {
-				*used = qty
-				*off = 0
-				printA(list, signs[s1], numbers[n2], total)
-				continue
+			if total == *aim && qty <= *used {
+				switch {
+				case *off != 0:
+					log.Println("Solved answer. Attempting to simplify further...")
+					*off = 0
+					fallthrough
+				case qty < *used:
+					*used = qty
+					printA(list, signs[s1], numbers[n2], total)
+				}
+
+				//We don't care about the rest of the iterations because we want to find a simpler answer.
+				return
 			}
 
 			if v := int(math.Abs(float64(*aim - total))); v < *off {
@@ -48,7 +56,7 @@ func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 				}
 			}
 
-			if qty < *used {
+			if *off == 0 && qty+1 < *used || *off != 0 && qty < *used {
 				rec(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), aim, off, used, threshold)
 			}
 		}
