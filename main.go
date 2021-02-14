@@ -91,18 +91,9 @@ func input() (input string, err error) {
 	return
 }
 
-func main() {
-	log.SetFlags(0)
-	log.Println("The numbers are: (separate each number with a space)")
-
-	var numbers []int
-	var aim int
-	var s string
-	var err error
-
-	const minQtyRequired = 3
+func parse(minQtyRequired int, message string) (numbers []int) {
 	for len(numbers) < minQtyRequired {
-		s, err = input()
+		s, err := input()
 		if err != nil {
 			log.Println(err)
 			continue
@@ -125,23 +116,22 @@ func main() {
 		}
 
 		if len(numbers) < minQtyRequired {
-			log.Print("At least three numbers are required.\n\n")
+			log.Printf("%s\n\n", message)
 			numbers = nil //Clear any previous failed inputs.
 		}
 	}
 
-	log.Println("\nThe total to aim for is:")
-	s, err = input()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	return
+}
 
-	s = strings.TrimSpace(s)
-	a, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	aim = int(a)
+func main() {
+	log.SetFlags(0)
+	log.Println("The numbers are: (separate each number with a space)")
+	numbers := parse(3, "At least three numbers are required.")
+
+	log.Println("\nThe total to aim for is:")
+	aim := parse(1, "At least one number is required.")[0]
+
 	threshold = calcThreshold(append(numbers, aim/aimPercentage, threshold))
 
 	borderLen := len(fmt.Sprintf("%v", numbers)) + 4
