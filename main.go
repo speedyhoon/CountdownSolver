@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -76,59 +77,61 @@ func printA(numbers []int, n ...int) {
 func input() (input string, err error) {
 	const readString = '\n'
 	reader := bufio.NewReader(os.Stdin)
-	// ReadString will block until the delimiter is entered
+	//ReadString will block until the delimiter is entered.
 	input, err = reader.ReadString(readString)
 	if err != nil {
-		fmt.Println("An error occurred while reading input. Please try again", err)
-		return
+		log.Fatalln("An error occurred while reading input. Please try again", err)
 	}
 
-	// remove the delimeter from the string
+	//Remove the delimiter from the string.
 	input = strings.TrimSuffix(input, string(readString))
 	return
 }
 
 func main() {
+	log.SetFlags(0)
+	log.Println("The numbers are: (separate each number with a space)")
+
 	var numbers []int
 	var aim int
 
-	fmt.Println("The numbers are: (separate each number with a space)")
 	s, err := input()
 	if err != nil {
-		return
+		log.Fatalln(err)
 	}
 	for _, i := range strings.Split(s, " ") {
 		i = strings.TrimSpace(i)
 		x, err := strconv.ParseInt(i, 10, 64)
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.Fatalln(err)
 		}
 		numbers = append(numbers, int(x))
 	}
 
-	fmt.Println("\nThe total to aim for is:")
+	if len(numbers) < 3 {
+		log.Fatalln("At least three numbers are required")
+	}
+
+	log.Println("\nThe total to aim for is:")
 	s, err = input()
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	s = strings.TrimSpace(s)
 	a, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 	aim = int(a)
 
 	borderLen := len(fmt.Sprintf("%d", numbers)) + 4
 	border := strings.Repeat("-", borderLen)
-	fmt.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, aim, numbers)
+	log.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, aim, numbers)
 
 	for _, n1 := range numbers {
 		if n1 == aim {
-			fmt.Println(n1, "=", aim)
+			log.Println(n1, "=", aim)
 			return
 		}
 	}
@@ -141,16 +144,12 @@ func main() {
 	}
 
 	if off != 0 {
-		fmt.Printf("%s\n   IMPOSSIBLE   \n%[1]s", border)
+		log.Printf("%s\n   IMPOSSIBLE   \n%[1]s", border)
 	}
 }
 
 func sum(inputs []int, k ...int) (total, qty int) {
 	inputs = append(inputs, k...)
-
-	if len(inputs) < 3 {
-		panic(3)
-	}
 
 	total = inputs[0]
 	for n := 2; n <= len(inputs[2:])+1; n += 2 {
