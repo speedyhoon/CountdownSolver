@@ -25,7 +25,7 @@ var (
 	display = []rune{'×', '+', '-', '÷'}
 )
 
-func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
+func recurse(numbers, list, indexes []int, target, offBy, used, threshold *int) {
 	for s1 := range signs {
 		for n2 := range numbers {
 			if has(indexes, n2) {
@@ -34,11 +34,11 @@ func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 			}
 
 			total, qty := sum(list, signs[s1], numbers[n2])
-			if total == *aim {
+			if total == *target {
 				switch {
-				case *off != 0:
+				case *offBy != 0:
 					log.Println("Solved answer. Attempting to simplify further...")
-					*off = 0
+					*offBy = 0
 					fallthrough
 				case qty < *used:
 					*used = qty
@@ -49,23 +49,23 @@ func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 				return
 			}
 
-			if v := int(math.Abs(float64(*aim - total))); v < *off {
-				*off = v
-				if *off <= *threshold {
+			if v := int(math.Abs(float64(*target - total))); v < *offBy {
+				*offBy = v
+				if *offBy <= *threshold {
 					printA(list, signs[s1], numbers[n2], total)
 				}
 			}
 
-			if *off == 0 && qty+1 < *used || *off != 0 && qty < *used {
-				rec(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), aim, off, used, threshold)
+			if *offBy == 0 && qty+1 < *used || *offBy != 0 && qty < *used {
+				recurse(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), target, offBy, used, threshold)
 			}
 		}
 	}
 }
 
-func has(indexes []int, newest int) bool {
-	for i := range indexes {
-		if indexes[i] == newest {
+func has(haystack []int, needle int) bool {
+	for i := range haystack {
+		if haystack[i] == needle {
 			return true
 		}
 	}
@@ -133,6 +133,16 @@ func parse(minQtyRequired int, message string) (numbers []int) {
 	return
 }
 
+func solve(numbers []int, target, threshold int) bool {
+	offBy := target
+	used := len(numbers)
+	for i := range numbers {
+		recurse(numbers, []int{numbers[i]}, []int{i}, &target, &offBy, &used, &threshold)
+	}
+
+	return offBy != 0
+}
+
 func main() {
 	log.SetFlags(0)
 	log.Println("The numbers are: (separate each number with a space)")
@@ -140,29 +150,23 @@ func main() {
 	sort.Ints(numbers)
 
 	log.Println("\nThe total to aim for is:")
-	aim := parse(1, "At least one number is required.")[0]
+	target := parse(1, "At least one number is required.")[0]
 
-	threshold := calcThreshold(aim/aimPercentage, defaultThreshold)
+	threshold := calcThreshold(target/aimPercentage, defaultThreshold)
 
 	borderLen := len(fmt.Sprintf("%v", numbers)) + 4
 	border := strings.Repeat("-", borderLen)
-	log.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, aim, numbers)
+	log.Printf("\n%s\n%*d\n  %d  \n%[1]s\n", border, borderLen/2+1, target, numbers)
 
 	for i := range numbers {
-		if numbers[i] == aim {
-			log.Println(numbers[i], "=", aim)
+		if numbers[i] == target {
+			log.Println(numbers[i], "=", target)
 			return
 		}
 	}
 
-	offBy := aim
-	used := len(numbers)
-	for i := range numbers {
-		rec(numbers, []int{numbers[i]}, []int{i}, &aim, &offBy, &used, &threshold)
-	}
-
-	if offBy != 0 {
-		log.Printf("%s\n   IMPOSSIBLE   \n%[1]s", border)
+	if solve(numbers, target, threshold) {
+		log.Printf("%s\n%*sIMPOSSIBLE\n%[1]s", border, borderLen/2-5-borderLen%2, " ")
 	}
 }
 
