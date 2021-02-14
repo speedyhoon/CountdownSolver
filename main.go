@@ -6,29 +6,30 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 const (
-	MUL           = iota //MUL represents multiplication.
-	ADD                  //ADD represents addition.
-	SUB                  //SUB represents subtraction.
-	DIV                  //DIV represents division.
-	aimPercentage = 10
+	MUL              = iota // MUL represents multiplication.
+	ADD                     // ADD represents addition.
+	SUB                     // SUB represents subtraction.
+	DIV                     // DIV represents division.
+	aimPercentage    = 10
+	defaultThreshold = 15 // Answers won't be printed unless they are within this threshold.
 )
 
 var (
-	signs     = []int{MUL, ADD, SUB, DIV}
-	display   = []rune{'×', '+', '-', '÷'}
-	threshold = 15 // Answers won't be printed unless they are within this threshold.
+	signs   = []int{MUL, ADD, SUB, DIV}
+	display = []rune{'×', '+', '-', '÷'}
 )
 
-func rec(numbers, list, indexes []int, aim, off, used *int) {
+func rec(numbers, list, indexes []int, aim, off, used, threshold *int) {
 	for s1 := range signs {
 		for n2 := range numbers {
 			if has(indexes, n2) {
-				//Each number can only be used once.
+				// Each number can only be used once.
 				continue
 			}
 
@@ -42,13 +43,13 @@ func rec(numbers, list, indexes []int, aim, off, used *int) {
 
 			if v := int(math.Abs(float64(*aim - total))); v < *off {
 				*off = v
-				if *off <= threshold {
+				if *off <= *threshold {
 					printA(list, signs[s1], numbers[n2], total)
 				}
 			}
 
 			if qty < *used {
-				rec(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), aim, off, used)
+				rec(numbers, append(list, signs[s1], numbers[n2]), append(indexes, n2), aim, off, used, threshold)
 			}
 		}
 	}
@@ -80,13 +81,13 @@ func printA(numbers []int, n ...int) {
 func input() (input string, err error) {
 	const readString = '\n'
 	reader := bufio.NewReader(os.Stdin)
-	//ReadString will block until the delimiter is entered.
+	// ReadString will block until the delimiter is entered.
 	input, err = reader.ReadString(readString)
 	if err != nil {
 		return
 	}
 
-	//Remove the delimiter from the string.
+	// Remove the delimiter from the string.
 	input = strings.TrimSuffix(input, string(readString))
 	return
 }
@@ -109,7 +110,7 @@ func parse(minQtyRequired int, message string) (numbers []int) {
 			var x int64
 			x, err = strconv.ParseInt(strs[i], 10, 64)
 			if err != nil || x == 0 {
-				//Zeros & errors are ignored.
+				// Zeros & errors are ignored.
 				continue
 			}
 			numbers = append(numbers, int(x))
@@ -117,7 +118,7 @@ func parse(minQtyRequired int, message string) (numbers []int) {
 
 		if len(numbers) < minQtyRequired {
 			log.Printf("%s\n\n", message)
-			numbers = nil //Clear any previous failed inputs.
+			numbers = nil // Clear any previous failed inputs.
 		}
 	}
 
@@ -128,11 +129,12 @@ func main() {
 	log.SetFlags(0)
 	log.Println("The numbers are: (separate each number with a space)")
 	numbers := parse(3, "At least three numbers are required.")
+	sort.Ints(numbers)
 
 	log.Println("\nThe total to aim for is:")
 	aim := parse(1, "At least one number is required.")[0]
 
-	threshold = calcThreshold(aim/aimPercentage, threshold)
+	threshold := calcThreshold(aim/aimPercentage, defaultThreshold)
 
 	borderLen := len(fmt.Sprintf("%v", numbers)) + 4
 	border := strings.Repeat("-", borderLen)
@@ -148,7 +150,7 @@ func main() {
 	offBy := aim
 	used := len(numbers)
 	for i := range numbers {
-		rec(numbers, []int{numbers[i]}, []int{i}, &aim, &offBy, &used)
+		rec(numbers, []int{numbers[i]}, []int{i}, &aim, &offBy, &used, &threshold)
 	}
 
 	if offBy != 0 {
